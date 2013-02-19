@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -170,35 +169,7 @@ func getPath(req *http.Request) string {
 func createRepo(w http.ResponseWriter, section string,
 	bg bool, payload []byte) {
 
-	p := struct {
-		Repository struct {
-			Owner   interface{}
-			Private bool
-			Name    string
-		}
-	}{}
-
-	err := json.Unmarshal(payload, &p)
-	if err != nil {
-		log.Printf("Error unmarshalling data: %v", err)
-		http.Error(w, "Error parsing JSON", http.StatusInternalServerError)
-		return
-	}
-
-	var ownerName string
-	switch i := p.Repository.Owner.(type) {
-	case string:
-		ownerName = i
-	case map[string]interface{}:
-		ownerName = fmt.Sprintf("%v", i["name"])
-	}
-
-	repo := fmt.Sprintf("git://github.com/%v/%v.git",
-		ownerName, p.Repository.Name)
-	if p.Repository.Private {
-		repo = fmt.Sprintf("git@github.com:%v/%v.git",
-			ownerName, p.Repository.Name)
-	}
+	repo := string(payload)
 
 	cmds := []*exec.Cmd{
 		exec.Command(*git, "clone", "--mirror", "--bare", repo,

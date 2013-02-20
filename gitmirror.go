@@ -260,5 +260,5 @@ func main() {
 		func(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "No favicon", http.StatusGone)
 		})
-	log.Fatal(http.ListenAndServe(":8124", nil))
+	log.Fatal(http.ListenAndServe("127.0.0.1:8124", nil))
 }

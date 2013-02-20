@@ -170,13 +170,11 @@ func getPath(req *http.Request) string {
 func createRepo(w http.ResponseWriter, section string,
 	bg bool, payload []byte) {
 
-	p := struct {
-		Repository struct {
-			URL string
-			Key string
-		}
-	}{}
-
+	type Repository struct {
+		URL string
+		Key string
+	}
+	p := Repository{}
 	err := json.Unmarshal(payload, &p)
 	if err != nil {
 		log.Printf("Error unmarshalling data: %v", err)
@@ -184,13 +182,13 @@ func createRepo(w http.ResponseWriter, section string,
 		return
 	}
 
-	if p.Repository.Key != os.Getenv("GITMIRROR_KEY") {
-		log.Printf("Key don't match: %v", p.Repository.Key)
+	if p.Key != os.Getenv("GITMIRROR_KEY") {
+		log.Printf("Key don't match: %v", p.Key)
 		http.Error(w, "Key don't match", http.StatusInternalServerError)
 		return
 	}
 
-	repo := p.Repository.Key
+	repo := p.URL
 
 	cmds := []*exec.Cmd{
 		exec.Command(*git, "clone", "--mirror", "--bare", repo,

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -16,6 +17,7 @@ import (
 
 var thePath = flag.String("dir", "/tmp", "working directory")
 var git = flag.String("git", "/usr/bin/git", "path to git")
+var key = flag.String("key", "UYwDPQrrCHzP496cOQhLjXhJl9u1PuYY58ciNHvD", "Key to authenticate")
 
 type CommandRequest struct {
 	w       http.ResponseWriter
@@ -169,7 +171,27 @@ func getPath(req *http.Request) string {
 func createRepo(w http.ResponseWriter, section string,
 	bg bool, payload []byte) {
 
-	repo := string(payload)
+	p := struct {
+		Repository struct {
+			URL string
+			Key string
+		}
+	}{}
+
+	err := json.Unmarshal(payload, &p)
+	if err != nil {
+		log.Printf("Error unmarshalling data: %v", err)
+		http.Error(w, "Error parsing JSON", http.StatusInternalServerError)
+		return
+	}
+
+	if p.Repository.Key != *key {
+		log.Printf("Key don't match: %v", p.Repository.Key)
+		http.Error(w, "Key don't match", http.StatusInternalServerError)
+		return
+	}
+
+	repo := p.Repository.Key
 
 	cmds := []*exec.Cmd{
 		exec.Command(*git, "clone", "--mirror", "--bare", repo,

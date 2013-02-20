@@ -17,7 +17,6 @@ import (
 
 var thePath = flag.String("dir", "/tmp", "working directory")
 var git = flag.String("git", "/usr/bin/git", "path to git")
-var key = flag.String("key", "UYwDPQrrCHzP496cOQhLjXhJl9u1PuYY58ciNHvD", "Key to authenticate")
 
 type CommandRequest struct {
 	w       http.ResponseWriter
@@ -185,7 +184,7 @@ func createRepo(w http.ResponseWriter, section string,
 		return
 	}
 
-	if p.Repository.Key != *key {
+	if p.Repository.Key != os.Getenv("GITMIRROR_KEY") {
 		log.Printf("Key don't match: %v", p.Repository.Key)
 		http.Error(w, "Key don't match", http.StatusInternalServerError)
 		return
